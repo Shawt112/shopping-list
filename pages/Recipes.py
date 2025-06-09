@@ -128,9 +128,12 @@ if not recipes_df.empty:
                                 st.success(f"Updated '{new_ing}' in '{recipe}'")
                                 st.experimental_rerun()
 
-        with col2:
-            if st.button(f"🗑️ Delete {recipe}", key=f"delete_{safe_recipe}"):
-                recipes_df = recipes_df[recipes_df["Recipe"] != recipe]
-                recipes_df.to_csv(CSV_FILE, index=False)
-                st.warning(f"Deleted recipe: {recipe}")
-                st.experimental_rerun()
+with col2:
+    if st.button(f"🗑️ Delete {recipe}", key=f"delete_{safe_recipe}"):
+        try:
+            recipes_df = recipes_df[recipes_df["Recipe"] != recipe]
+            recipes_df.to_csv(CSV_FILE, index=False)
+            st.warning(f"Deleted recipe: {recipe}")
+            st.experimental_rerun()
+        except Exception as e:
+            st.error(f"Failed to delete recipe '{recipe}': {e}")
