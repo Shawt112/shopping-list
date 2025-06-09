@@ -1,14 +1,28 @@
 import streamlit as st
 import pandas as pd
+import os
+import json
 
 st.set_page_config(page_title="Shopping List", page_icon="🛒", layout="centered")
 
 st.title("🛒 Shopping List")
 
-# Check required session state data
-if "weekly_plan" not in st.session_state or "recipes_df" not in st.session_state:
-    st.error("Meal planner or recipe data not found. Please fill out the Meal Planner first.")
-    st.stop()
+# Restore weekly_plan if not in session
+if "weekly_plan" not in st.session_state:
+    if os.path.exists("weekly_plan.json"):
+        with open("weekly_plan.json") as f:
+            st.session_state["weekly_plan"] = json.load(f)
+    else:
+        st.error("No meal plan data found. Please use the Meal Planner first.")
+        st.stop()
+
+# Restore recipes_df if not in session
+if "recipes_df" not in st.session_state:
+    if os.path.exists("recipes_cache.csv"):
+        st.session_state["recipes_df"] = pd.read_csv("recipes_cache.csv")
+    else:
+        st.error("No recipe data found. Please use the Recipes page first.")
+        st.stop()
 
 meal_plan = st.session_state["weekly_plan"]
 recipes_df = st.session_state["recipes_df"]
@@ -16,9 +30,7 @@ recipes_df = st.session_state["recipes_df"]
 # Collect all selected recipes from the planner
 selected_recipes = set()
 for day_meals in meal_plan.values():
-    for meal in day_meals.values():
-        if meal and meal != "-":
-            selected_recipes.add(meal)
+    selected_recipes.update([m for m in day_meals.values() if m and m != "-"])
 
 # Filter and collect ingredients
 ingredients = recipes_df[recipes_df["Recipe"].isin(selected_recipes)]
