@@ -1,46 +1,71 @@
-iimport pandas as pd
 import streamlit as st
-from collections import defaultdict
+import pandas as pd
+import os
 
-# Sample: Replace this with your actual recipes_df from your app
-recipes_df = pd.read_csv("recipes.csv")  # or keep this from your state in Streamlit
+st.set_page_config(page_title="Shopping List", page_icon="🛒", layout="centered")
+st.title("🛒 Shopping List Generator")
 
-# Sample: Simulated meal plan dictionary
-meal_plan = {
-    "Monday": {"Breakfast": "Porridge", "Lunch": "Salad", "Tea": "Pasta", "Snacks": "Fruit"},
-    "Tuesday": {"Breakfast": "Toast", "Lunch": "Soup", "Tea": "Curry", "Snacks": "Yogurt"},
-    # Extend as needed
-}
+# Constants
+RECIPES_CSV = "recipes.csv"
 
-# 🧠 Build shopping list
-shopping_dict = defaultdict(lambda: defaultdict(float))  # {ingredient: {unit: total_quantity}}
+# Load Recipes
+if os.path.exists(RECIPES_CSV):
+    recipes_df = pd.read_csv(RECIPES_CSV)
+else:
+    st.warning("No recipes found. Please add recipes first on the Recipes page.")
+    st.stop()
 
-for day_meals in meal_plan.values():
-    for meal in day_meals.values():
-        if not meal:
-            continue
-        matched_ingredients = recipes_df[recipes_df["Recipe"].str.strip().str.lower() == meal.strip().lower()]
-        for _, row in matched_ingredients.iterrows():
-            ingredient = row["Ingredient"].strip().lower()
-            unit = row["Unit"].strip().lower()
-            try:
-                qty = float(row["Quantity"])
-            except:
-                qty = 0  # Handle non-numeric gracefully
-            shopping_dict[ingredient][unit] += qty
+# ------------------------------
+# Meal Planner Session Handling
+# ------------------------------
+if "meal_plan" not in st.session_state:
+    st.warning("No meal plan found. Please create your meal plan first.")
+    st.stop()
 
-# 🔄 Flatten to DataFrame
-shopping_list = []
-for ingredient, units in shopping_dict.items():
-    for unit, total_qty in units.items():
-        shopping_list.append({
-            "Ingredient": ingredient.title(),
-            "Quantity": total_qty,
-            "Unit": unit
-        })
+meal_plan = st.session_state.meal_plan
 
-shopping_df = pd.DataFrame(shopping_list).sort_values("Ingredient")
+# ------------------------------
+# Ingredient Aggregation
+# ------------------------------
+all_ingredients = []
 
-# 📋 Display shopping list
-st.subheader("🛒 Generated Shopping List")
-st.table(shopping_df.reset_index(drop=True))
+for day, meals in meal_plan.items():
+    for meal_name, recipe_name in meals.items():
+        if recipe_name:
+            matching = recipes_df[recipes_df["Recipe"] == recipe_name]
+            all_ingredients.append(matching)
+
+if not all_ingredients:
+    st.info("Your meal plan doesn't contain any recipes yet.")
+    st.stop()
+
+full_df = pd.concat(all_ingredients, ignore_index=True)
+
+# Clean and normalize
+full_df["Ingredient"] = full_df["Ingredient"].str.strip().str.lower()
+full_df["Quantity"] = pd.to_numeric(full_df["Quantity"], errors="coerce").fillna(0)
+
+# Combine duplicates
+grouped = full_df.groupby(["Ingredient", "Unit"], as_index=False)["Quantity"].sum()
+
+# ------------------------------
+# Display Shopping List
+# ------------------------------
+st.subheader("📋 Consolidated Shopping List")
+
+if grouped.empty:
+    st.info("Nothing to show yet.")
+else:
+    grouped = grouped.sort_values(by="Ingredient").reset_index(drop=True)
+    st.table(grouped.rename(columns={"Ingredient": "Item", "Quantity": "Total", "Unit": "Unit"}))
+
+# ------------------------------
+# Export
+# ------------------------------
+csv_data = grouped.to_csv(index=False)
+st.download_button(
+    label="⬇️ Download Shopping List",
+    data=csv_data,
+    file_name="shopping_list.csv",
+    mime="text/csv"
+)
