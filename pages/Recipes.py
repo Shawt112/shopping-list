@@ -24,12 +24,6 @@ if not recipes_df.empty:
     recipe_names = recipes_df["Recipe"].unique().tolist()
     selected = st.selectbox("Choose a recipe to view ingredients", recipe_names)
     
-    st.markdown("### 📝 Ingredients")
-    subset = recipes_df[recipes_df["Recipe"] == selected]
-    for _, row in subset.iterrows():
-        label = f"{row['Ingredient']} ({row['Quantity']} {row['Unit']})" if row['Quantity'] else row['Ingredient']
-        st.checkbox(label)
-
 # ===========================
 # 📂 Upload CSV of Recipes
 # ===========================
