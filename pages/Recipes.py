@@ -142,6 +142,6 @@ with col2:
             recipes_df = recipes_df[recipes_df["Recipe"] != recipe]
             recipes_df.to_csv(CSV_FILE, index=False)
             st.warning(f"Deleted recipe: {recipe}")
-            st.experimental_rerun()
+            st.rerun()
         except Exception as e:
             st.error(f"Failed to delete recipe '{recipe}': {e}")
