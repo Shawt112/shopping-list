@@ -75,6 +75,55 @@ with st.form("add_recipe_form"):
             st.experimental_rerun()
 
 # ===========================
+# 💾 Export Recipes to CSV
+# ===========================
+st.subheader("💾 Export Your Recipes")
+st.download_button(
+    label="📥 Download Recipes as CSV",
+    data=recipes_df.to_csv(index=False),
+    file_name="my_recipes.csv",
+    mime="text/csv"
+)
+
+# ===========================
+# 🛠 Edit/Delete Recipes
+# ===========================
+st.subheader("🛠 Edit or Delete Ingredients")
+
+edit_df = recipes_df.copy()
+edit_df["Index"] = edit_df.index
+
+# Display editable table with unique index
+selected_row = st.selectbox("Select a row to edit/delete", options=edit_df["Index"], format_func=lambda i: f"{edit_df.loc[i, 'Recipe']} - {edit_df.loc[i, 'Ingredient']}")
+
+selected_data = edit_df.loc[selected_row]
+
+# Edit form
+with st.form("edit_form"):
+    new_recipe = st.text_input("Recipe", value=selected_data["Recipe"])
+    new_ingredient = st.text_input("Ingredient", value=selected_data["Ingredient"])
+    new_quantity = st.text_input("Quantity", value=selected_data["Quantity"])
+    new_unit = st.text_input("Unit", value=selected_data["Unit"])
+
+    col1, col2 = st.columns(2)
+    with col1:
+        save_btn = st.form_submit_button("💾 Save Changes")
+    with col2:
+        delete_btn = st.form_submit_button("🗑️ Delete")
+
+    if save_btn:
+        recipes_df.loc[selected_row] = [new_recipe, new_ingredient, new_quantity, new_unit]
+        recipes_df.to_csv(CSV_FILE, index=False)
+        st.success("Changes saved.")
+        st.experimental_rerun()
+
+    if delete_btn:
+        recipes_df = recipes_df.drop(index=selected_row).reset_index(drop=True)
+        recipes_df.to_csv(CSV_FILE, index=False)
+        st.success("Ingredient deleted.")
+        st.experimental_rerun()
+
+# ===========================
 # 📊 Separate Tables Per Recipe
 # ===========================
 if not recipes_df.empty:
