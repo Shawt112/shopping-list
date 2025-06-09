@@ -99,3 +99,10 @@ selected_recipes = {
 st.session_state["selected_recipes"] = list(selected_recipes)
 st.session_state["recipes_df"] = recipes_df
 st.session_state["meal_plan"] = st.session_state.weekly_plan
+
+# Save weekly_plan persistently
+with open("weekly_plan.json", "w") as f:
+    json.dump(st.session_state.weekly_plan, f)
+
+# Also persist recipe data (optional, to avoid CSV reload elsewhere)
+recipes_df.to_csv("recipes_cache.csv", index=False)
