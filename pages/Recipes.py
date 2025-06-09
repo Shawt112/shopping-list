@@ -93,23 +93,6 @@ selected_row = st.selectbox("Select a row to edit/delete", options=edit_df["Inde
 selected_data = edit_df.loc[selected_row]
 
 # ===========================
-# 📊 Separate Tables Per Recipe
-# ===========================
-if not recipes_df.empty:
-    st.subheader("📊 Ingredients by Recipe")
-
-    grouped = recipes_df.copy()
-    grouped["Ingredient Detail"] = grouped.apply(
-        lambda row: f"{row['Ingredient']} ({row['Quantity']} {row['Unit']})" if row['Quantity'] else row['Ingredient'],
-        axis=1
-    )
-
-    for recipe in grouped["Recipe"].unique():
-        st.markdown(f"### 🍽️ {recipe}")
-        table_df = grouped[grouped["Recipe"] == recipe][["Ingredient Detail"]].rename(columns={"Ingredient Detail": "Ingredient"})
-        st.table(table_df.reset_index(drop=True))
-
-# ===========================
 # 🍽️ Display Each Recipe with Edit/Delete Buttons
 # ===========================
 if not recipes_df.empty:
