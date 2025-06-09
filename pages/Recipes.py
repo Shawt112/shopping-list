@@ -125,17 +125,27 @@ if not recipes_df.empty:
                         new_ing = st.text_input("Ingredient", value=row["Ingredient"])
                         new_qty = st.text_input("Quantity", value=str(row["Quantity"]))
                         new_unit = st.text_input("Unit", value=row["Unit"])
-                        save = st.form_submit_button("Save Changes")
+col_save, col_delete = st.columns([1, 1])
+with col_save:
+    save = st.form_submit_button("💾 Save Changes")
+with col_delete:
+    delete = st.form_submit_button("🗑️ Delete Ingredient")
 
-                        if save:
-                            recipes_df.loc[idx, ["Ingredient", "Quantity", "Unit"]] = [
-                                new_ing.strip(),
-                                new_qty.strip(),
-                                new_unit.strip()
-                            ]
-                            recipes_df.to_csv(CSV_FILE, index=False)
-                            st.success(f"✅ Updated '{new_ing}' in '{recipe}'")
-                            st.rerun()
+if save:
+    recipes_df.loc[idx, ["Ingredient", "Quantity", "Unit"]] = [
+        new_ing.strip(),
+        new_qty.strip(),
+        new_unit.strip()
+    ]
+    recipes_df.to_csv(CSV_FILE, index=False)
+    st.success(f"✅ Updated '{new_ing}' in '{recipe}'")
+    st.rerun()
+
+if delete:
+    recipes_df = recipes_df.drop(index=idx)
+    recipes_df.to_csv(CSV_FILE, index=False)
+    st.warning(f"🗑️ Deleted ingredient '{selected_ingredient}' from '{recipe}'")
+    st.rerun()
 
         with col2:
             if st.button(f"Delete {recipe}", key=f"delete_{safe_recipe}"):
