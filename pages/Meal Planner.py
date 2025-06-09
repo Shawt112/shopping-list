@@ -65,3 +65,14 @@ if st.button("🔄 Clear Plan"):
         day: {meal: "" for meal in MEALS} for day in selected_days
     }
     st.experimental_rerun()
+
+# Extract all selected recipes from the weekly plan
+selected_recipes = set()
+for meals in st.session_state.weekly_plan.values():
+    for meal in meals.values():
+        if meal and meal != "-":
+            selected_recipes.add(meal)
+
+# Store in session state for access in other pages
+st.session_state["selected_recipes"] = list(selected_recipes)
+st.session_state["recipes_df"] = recipes_df
