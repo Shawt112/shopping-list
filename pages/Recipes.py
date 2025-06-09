@@ -79,14 +79,6 @@ st.download_button(
     mime="text/csv"
 )
 
-# ===========================
-# 🛠 Edit/Delete Recipes
-# ===========================
-st.subheader("🛠 Edit or Delete Ingredients")
-
-edit_df = recipes_df.copy()
-edit_df["Index"] = edit_df.index
-
 # Display editable table with unique index
 selected_row = st.selectbox("Select a row to edit/delete", options=edit_df["Index"], format_func=lambda i: f"{edit_df.loc[i, 'Recipe']} - {edit_df.loc[i, 'Ingredient']}")
 
