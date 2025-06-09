@@ -108,29 +108,35 @@ if not recipes_df.empty:
         col1, col2 = st.columns([1, 1])
         safe_recipe = re.sub(r'\W+', '_', recipe)
 
-        with col1:
-            if st.button(f"✏️ Edit {recipe}", key=f"edit_{safe_recipe}"):
-                with st.expander(f"Edit ingredients for {recipe}", expanded=True):
-                    ingredients = recipe_data["Ingredient"].tolist()
-                    selected_ingredient = st.selectbox("Choose ingredient to edit", ingredients, key=f"dropdown_{safe_recipe}")
+with col1:
+    with st.expander(f"✏️ Edit ingredients for {recipe}", expanded=False):
+        ingredients = recipes_df[recipes_df["Recipe"] == recipe]["Ingredient"].tolist()
+        selected_ingredient = st.selectbox(
+            "Choose ingredient to edit", ingredients, key=f"dropdown_{safe_recipe}"
+        )
 
-                    target_row = recipes_df[(recipes_df["Recipe"] == recipe) & (recipes_df["Ingredient"] == selected_ingredient)]
-                    if not target_row.empty:
-                        idx = target_row.index[0]
-                        row = target_row.iloc[0]
-                        safe_ing = re.sub(r'\W+', '_', selected_ingredient)
+        # Get the actual index in the original dataframe
+        match = recipes_df[(recipes_df["Recipe"] == recipe) & (recipes_df["Ingredient"] == selected_ingredient)]
+        if not match.empty:
+            idx = match.index[0]
+            row = match.iloc[0]
+            safe_ing = re.sub(r'\W+', '_', selected_ingredient)
 
-                        with st.form(f"edit_form_{safe_recipe}_{safe_ing}"):
-                            new_ing = st.text_input("Ingredient", value=row["Ingredient"])
-                            new_qty = st.text_input("Quantity", value=str(row["Quantity"]))
-                            new_unit = st.text_input("Unit", value=row["Unit"])
-                            save = st.form_submit_button("📅 Save Changes")
+            with st.form(f"edit_form_{safe_recipe}_{safe_ing}"):
+                new_ing = st.text_input("Ingredient", value=row["Ingredient"])
+                new_qty = st.text_input("Quantity", value=str(row["Quantity"]))
+                new_unit = st.text_input("Unit", value=row["Unit"])
+                save = st.form_submit_button("📅 Save Changes")
 
-                            if save:
-                                recipes_df.loc[idx, ["Ingredient", "Quantity", "Unit"]] = [new_ing, new_qty, new_unit]
-                                recipes_df.to_csv(CSV_FILE, index=False)
-                                st.success(f"Updated '{new_ing}' in '{recipe}'")
-                                st.rerun()
+                if save:
+                    recipes_df.loc[idx, ["Ingredient", "Quantity", "Unit"]] = [
+                        new_ing.strip(),
+                        new_qty.strip(),
+                        new_unit.strip()
+                    ]
+                    recipes_df.to_csv(CSV_FILE, index=False)
+                    st.success(f"✅ Updated '{new_ing}' in '{recipe}'")
+                    st.experimental_rerun()
 
         with col2:
             if st.button(f"🚕 Delete {recipe}", key=f"delete_{safe_recipe}"):
