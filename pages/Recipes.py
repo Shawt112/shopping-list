@@ -138,7 +138,7 @@ if not recipes_df.empty:
                             st.rerun()
 
         with col2:
-            if st.button(f"🚕 Delete {recipe}", key=f"delete_{safe_recipe}"):
+            if st.button(f"Delete {recipe}", key=f"delete_{safe_recipe}"):
                 try:
                     recipes_df = recipes_df[recipes_df["Recipe"] != recipe]
                     recipes_df.to_csv(CSV_FILE, index=False)
