@@ -75,10 +75,10 @@ with st.form("add_recipe_form"):
             st.experimental_rerun()
 
 # ===========================
-# 📊 Detailed Table of All Recipes and Ingredients
+# 📊 Summary Table with Recipe Shown Once
 # ===========================
 if not recipes_df.empty:
-    st.subheader("📊 Summary of All Recipes and Ingredients (One Ingredient per Row)")
+    st.subheader("📊 Summary of All Recipes and Ingredients")
 
     detailed_df = recipes_df.copy()
     detailed_df["Ingredient Detail"] = detailed_df.apply(
@@ -86,6 +86,15 @@ if not recipes_df.empty:
         axis=1
     )
 
-    display_df = detailed_df[["Recipe", "Ingredient Detail"]].sort_values(by="Recipe")
+    # Build a new DataFrame where recipe names repeat only once
+    formatted_rows = []
+    for recipe in detailed_df["Recipe"].unique():
+        recipe_rows = detailed_df[detailed_df["Recipe"] == recipe]["Ingredient Detail"].tolist()
+        formatted_rows.extend(
+            [{"Recipe": recipe if i == 0 else "", "Ingredient": ing} for i, ing in enumerate(recipe_rows)]
+        )
 
-    st.dataframe(display_df, use_container_width=True)
+    summary_display = pd.DataFrame(formatted_rows)
+
+    # Display using st.table for cleaner look
+    st.table(summary_display)
