@@ -95,7 +95,7 @@ if not recipes_df.empty:
     st.subheader("📋 Manage Recipes")
 
     for recipe in recipes_df["Recipe"].unique():
-        st.markdown(f"### 🍽️ {recipe}")
+        st.markdown(f"## {recipe}")
 
         recipe_data = recipes_df[recipes_df["Recipe"] == recipe].copy()
         recipe_data["Ingredient Detail"] = recipe_data.apply(
@@ -109,7 +109,7 @@ if not recipes_df.empty:
         safe_recipe = re.sub(r'\W+', '_', recipe)
 
         with col1:
-            with st.expander(f"✏️ Edit ingredients for {recipe}", expanded=False):
+            with st.expander(f"Edit ingredients for {recipe}", expanded=False):
                 ingredients = recipe_data["Ingredient"].tolist()
                 selected_ingredient = st.selectbox(
                     "Choose ingredient to edit", ingredients, key=f"dropdown_{safe_recipe}"
@@ -125,7 +125,7 @@ if not recipes_df.empty:
                         new_ing = st.text_input("Ingredient", value=row["Ingredient"])
                         new_qty = st.text_input("Quantity", value=str(row["Quantity"]))
                         new_unit = st.text_input("Unit", value=row["Unit"])
-                        save = st.form_submit_button("📅 Save Changes")
+                        save = st.form_submit_button("Save Changes")
 
                         if save:
                             recipes_df.loc[idx, ["Ingredient", "Quantity", "Unit"]] = [
