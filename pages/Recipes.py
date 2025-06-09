@@ -36,7 +36,7 @@ if uploaded_file:
         recipes_df = pd.concat([recipes_df, new_data], ignore_index=True).drop_duplicates()
         recipes_df.to_csv(CSV_FILE, index=False)
         st.success("Recipes uploaded and saved!")
-        st.experimental_rerun()
+        st.rerun()
     else:
         st.error("CSV must include 'Recipe', 'Ingredient', 'Quantity', and 'Unit' columns")
 
@@ -73,14 +73,14 @@ if submitted:
             recipes_df = pd.concat([recipes_df, new_row], ignore_index=True).drop_duplicates()
             recipes_df.to_csv(CSV_FILE, index=False)
             st.success(f"✅ Added ingredient to recipe: {custom_recipe}")
-            st.experimental_rerun()
+            st.rerun()
         except Exception as e:
             st.error(f"❌ Failed to save recipe: {e}")
 
 # ===========================
-# 💾 Export Recipes to CSV
+# 📅 Export Recipes to CSV
 # ===========================
-st.subheader("💾 Export Your Recipes")
+st.subheader("📅 Export Your Recipes")
 st.download_button(
     label="📅 Download Recipes as CSV",
     data=recipes_df.to_csv(index=False),
@@ -114,9 +114,9 @@ if not recipes_df.empty:
                     ingredients = recipe_data["Ingredient"].tolist()
                     selected_ingredient = st.selectbox("Choose ingredient to edit", ingredients, key=f"dropdown_{safe_recipe}")
 
-                    target_row = recipe_data[recipe_data["Ingredient"] == selected_ingredient]
+                    target_row = recipes_df[(recipes_df["Recipe"] == recipe) & (recipes_df["Ingredient"] == selected_ingredient)]
                     if not target_row.empty:
-                        idx = recipes_df[(recipes_df["Recipe"] == recipe) & (recipes_df["Ingredient"] == selected_ingredient)].index[0]
+                        idx = target_row.index[0]
                         row = target_row.iloc[0]
                         safe_ing = re.sub(r'\W+', '_', selected_ingredient)
 
@@ -127,21 +127,17 @@ if not recipes_df.empty:
                             save = st.form_submit_button("📅 Save Changes")
 
                             if save:
-                                recipes_df.loc[idx, ["Ingredient", "Quantity", "Unit"]] = [
-                                    new_ing,
-                                    new_qty,
-                                    new_unit
-                                ]
+                                recipes_df.loc[idx, ["Ingredient", "Quantity", "Unit"]] = [new_ing, new_qty, new_unit]
                                 recipes_df.to_csv(CSV_FILE, index=False)
                                 st.success(f"Updated '{new_ing}' in '{recipe}'")
-                                st.experimental_rerun()
+                                st.rerun()
 
-with col2:
-    if st.button(f"🗑️ Delete {recipe}", key=f"delete_{safe_recipe}"):
-        try:
-            recipes_df = recipes_df[recipes_df["Recipe"] != recipe]
-            recipes_df.to_csv(CSV_FILE, index=False)
-            st.warning(f"Deleted recipe: {recipe}")
-            st.rerun()
-        except Exception as e:
-            st.error(f"Failed to delete recipe '{recipe}': {e}")
+        with col2:
+            if st.button(f"🚕 Delete {recipe}", key=f"delete_{safe_recipe}"):
+                try:
+                    recipes_df = recipes_df[recipes_df["Recipe"] != recipe]
+                    recipes_df.to_csv(CSV_FILE, index=False)
+                    st.warning(f"Deleted recipe: {recipe}")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Failed to delete recipe '{recipe}': {e}")
