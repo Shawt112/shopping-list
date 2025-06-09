@@ -75,19 +75,19 @@ with st.form("add_recipe_form"):
             st.experimental_rerun()
 
 # ===========================
-# 📊 Detailed Table of All Recipes and Ingredients
+# 📊 Separate Tables Per Recipe
 # ===========================
 if not recipes_df.empty:
-    st.subheader("📊 Summary of All Recipes and Ingredients (One Ingredient per Row)")
+    st.subheader("📊 Ingredients by Recipe")
 
-    detailed_df = recipes_df.copy()
-    detailed_df["Ingredient Detail"] = detailed_df.apply(
+    grouped = recipes_df.copy()
+    grouped["Ingredient Detail"] = grouped.apply(
         lambda row: f"{row['Ingredient']} ({row['Quantity']} {row['Unit']})" if row['Quantity'] else row['Ingredient'],
         axis=1
     )
 
-    display_df = detailed_df[["Recipe", "Ingredient Detail"]].sort_values(by="Recipe")
+    for recipe in grouped["Recipe"].unique():
+        st.markdown(f"### 🍽️ {recipe}")
+        table_df = grouped[grouped["Recipe"] == recipe][["Ingredient Detail"]].rename(columns={"Ingredient Detail": "Ingredient"})
+        st.table(table_df.reset_index(drop=True))
 
-    st.dataframe(display_df, use_container_width=True)
-
-    st.table(summary_display)
