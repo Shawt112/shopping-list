@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Home Page", page_icon="🏠", layout="centered")
 
-st.title("🏠 Welcome to My Homepage Louise")
+st.title("🏠 Welcome to My Homepage")
 st.write("This is a simple homepage built using Streamlit.")
 
 st.markdown("---")
