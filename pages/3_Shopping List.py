@@ -16,7 +16,9 @@ recipes_df = st.session_state["recipes_df"]
 # Collect all selected recipes from the planner
 selected_recipes = set()
 for day_meals in meal_plan.values():
-    selected_recipes.update(day_meals.values())
+    for meal in day_meals.values():
+        if meal and meal != "-":
+            selected_recipes.add(meal)
 
 # Filter and collect ingredients
 ingredients = recipes_df[recipes_df["Recipe"].isin(selected_recipes)]
