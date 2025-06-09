@@ -116,7 +116,7 @@ if not recipes_df.empty:
 
                     target_row = recipe_data[recipe_data["Ingredient"] == selected_ingredient]
                     if not target_row.empty:
-                        idx = target_row.index[0]
+                        idx = recipes_df[(recipes_df["Recipe"] == recipe) & (recipes_df["Ingredient"] == selected_ingredient)].index[0]
                         row = target_row.iloc[0]
                         safe_ing = re.sub(r'\W+', '_', selected_ingredient)
 
