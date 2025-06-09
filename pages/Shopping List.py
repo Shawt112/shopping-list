@@ -30,10 +30,14 @@ meal_plan = st.session_state.meal_plan
 all_ingredients = []
 
 for day, meals in meal_plan.items():
-    for meal_name, recipe_name in meals.items():
-        if recipe_name:
-            matching = recipes_df[recipes_df["Recipe"] == recipe_name]
-            all_ingredients.append(matching)
+    if isinstance(meals, dict):  # Handle structured day with meal slots
+        for meal_name, recipe_name in meals.items():
+            if recipe_name:
+                matching = recipes_df[recipes_df["Recipe"] == recipe_name]
+                all_ingredients.append(matching)
+    elif isinstance(meals, str):  # Handle flat string (one recipe per day)
+        matching = recipes_df[recipes_df["Recipe"] == meals]
+        all_ingredients.append(matching)
 
 if not all_ingredients:
     st.info("Your meal plan doesn't contain any recipes yet.")
