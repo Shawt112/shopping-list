@@ -79,11 +79,6 @@ st.download_button(
     mime="text/csv"
 )
 
-# Display editable table with unique index
-selected_row = st.selectbox("Select a row to edit/delete", options=edit_df["Index"], format_func=lambda i: f"{edit_df.loc[i, 'Recipe']} - {edit_df.loc[i, 'Ingredient']}")
-
-selected_data = edit_df.loc[selected_row]
-
 # ===========================
 # 🍽️ Display Each Recipe with Edit/Delete Buttons
 # ===========================
