@@ -5,7 +5,6 @@ import json
 
 st.set_page_config(page_title="Meal Planner", page_icon="🗓️", layout="centered")
 st.title("🗓️ Weekly Meal Planner")
-st.write("Easily plan meals for the week. Optimized for mobile use.")
 
 RECIPE_FILE = "recipes.csv"
 PLAN_FILE = "meal_plan.json"
