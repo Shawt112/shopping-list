@@ -95,7 +95,7 @@ if not recipes_df.empty:
     st.subheader("📋 Manage Recipes")
 
     for recipe in recipes_df["Recipe"].unique():
-        st.markdown(f"## {recipe}")
+        st.markdown(f" {recipe}")
 
         recipe_data = recipes_df[recipes_df["Recipe"] == recipe].copy()
         recipe_data["Ingredient Detail"] = recipe_data.apply(
