@@ -54,20 +54,28 @@ with st.form("add_recipe_form"):
 
     submitted = st.form_submit_button("Add Ingredient to Recipe")
 
-    if submitted:
-        if not all([custom_recipe.strip(), ingredient_name.strip()]):
-            st.warning("Recipe name and ingredient are required.")
-        else:
+if submitted:
+    custom_recipe = custom_recipe.strip()
+    ingredient_name = ingredient_name.strip()
+    quantity = quantity.strip()
+    unit = unit.strip()
+
+    if not custom_recipe or not ingredient_name:
+        st.warning("Please enter both a recipe name and at least one ingredient.")
+    else:
+        try:
             new_row = pd.DataFrame([{
-                "Recipe": custom_recipe.strip(),
-                "Ingredient": ingredient_name.strip(),
-                "Quantity": quantity.strip(),
-                "Unit": unit.strip()
+                "Recipe": custom_recipe,
+                "Ingredient": ingredient_name,
+                "Quantity": quantity,
+                "Unit": unit
             }])
             recipes_df = pd.concat([recipes_df, new_row], ignore_index=True).drop_duplicates()
             recipes_df.to_csv(CSV_FILE, index=False)
-            st.success(f"Added ingredient to recipe: {custom_recipe}")
+            st.success(f"✅ Added ingredient to recipe: {custom_recipe}")
             st.experimental_rerun()
+        except Exception as e:
+            st.error(f"❌ Failed to save recipe: {e}")
 
 # ===========================
 # 💾 Export Recipes to CSV
