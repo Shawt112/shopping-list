@@ -73,3 +73,25 @@ with st.form("add_recipe_form"):
             recipes_df.to_csv(CSV_FILE, index=False)
             st.success(f"Added ingredient to recipe: {custom_recipe}")
             st.experimental_rerun()
+
+# ===========================
+# 📊 Summary Table of All Recipes
+# ===========================
+if not recipes_df.empty:
+    st.subheader("📊 Summary of All Recipes and Ingredients")
+
+    # Create a display column that combines ingredient + quantity + unit
+    summary_df = recipes_df.copy()
+    summary_df["Details"] = summary_df.apply(
+        lambda row: f"{row['Ingredient']} ({row['Quantity']} {row['Unit']})" if row['Quantity'] else row['Ingredient'],
+        axis=1
+    )
+
+    # Pivot into a grouped display
+    grouped = summary_df.groupby("Recipe")["Details"].apply(list).reset_index()
+
+    # Render as a table with joined ingredients
+    grouped["Ingredients"] = grouped["Details"].apply(lambda lst: ", ".join(lst))
+    grouped = grouped[["Recipe", "Ingredients"]]
+
+    st.dataframe(grouped, use_container_width=True)
