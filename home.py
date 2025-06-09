@@ -2,12 +2,12 @@ import streamlit as st
 
 st.set_page_config(page_title="Home Page", page_icon="🏠", layout="centered")
 
-st.title("🏠 Welcome to My Homepage")
-st.write("This is a simple homepage built using Streamlit.")
+st.title("🏠 Welcome to the Food Shopping App")
+st.write("This is the homepage.")
 
 st.markdown("---")
 
-st.header("🚀 Quick Links")
+st.header("Quick Links")
 
 # Use Streamlit's built-in page navigation links
 st.page_link("pages/1_Meal Planner.py", label="🗓️ Meal Planner")
