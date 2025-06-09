@@ -92,31 +92,6 @@ selected_row = st.selectbox("Select a row to edit/delete", options=edit_df["Inde
 
 selected_data = edit_df.loc[selected_row]
 
-# Edit form
-with st.form("edit_form"):
-    new_recipe = st.text_input("Recipe", value=selected_data["Recipe"])
-    new_ingredient = st.text_input("Ingredient", value=selected_data["Ingredient"])
-    new_quantity = st.text_input("Quantity", value=selected_data["Quantity"])
-    new_unit = st.text_input("Unit", value=selected_data["Unit"])
-
-    col1, col2 = st.columns(2)
-    with col1:
-        save_btn = st.form_submit_button("💾 Save Changes")
-    with col2:
-        delete_btn = st.form_submit_button("🗑️ Delete")
-
-    if save_btn:
-        recipes_df.loc[selected_row] = [new_recipe, new_ingredient, new_quantity, new_unit]
-        recipes_df.to_csv(CSV_FILE, index=False)
-        st.success("Changes saved.")
-        st.experimental_rerun()
-
-    if delete_btn:
-        recipes_df = recipes_df.drop(index=selected_row).reset_index(drop=True)
-        recipes_df.to_csv(CSV_FILE, index=False)
-        st.success("Ingredient deleted.")
-        st.experimental_rerun()
-
 # ===========================
 # 📊 Separate Tables Per Recipe
 # ===========================
@@ -134,3 +109,41 @@ if not recipes_df.empty:
         table_df = grouped[grouped["Recipe"] == recipe][["Ingredient Detail"]].rename(columns={"Ingredient Detail": "Ingredient"})
         st.table(table_df.reset_index(drop=True))
 
+# ===========================
+# 🍽️ Display Each Recipe with Edit/Delete Buttons
+# ===========================
+if not recipes_df.empty:
+    st.subheader("📋 Manage Recipes")
+
+    for recipe in recipes_df["Recipe"].unique():
+        st.markdown(f"### 🍽️ {recipe}")
+
+        # Filter and show ingredients
+        recipe_data = recipes_df[recipes_df["Recipe"] == recipe].copy()
+        recipe_data["Ingredient Detail"] = recipe_data.apply(
+            lambda row: f"{row['Ingredient']} ({row['Quantity']} {row['Unit']})" if row["Quantity"] else row["Ingredient"],
+            axis=1
+        )
+        display_table = recipe_data[["Ingredient Detail"]].reset_index(drop=True)
+        st.table(display_table)
+
+        # Buttons to edit/delete this recipe
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            if st.button(f"✏️ Edit {recipe}"):
+                with st.expander(f"Edit ingredients for {recipe}", expanded=True):
+                    for idx, row in recipe_data.iterrows():
+                        new_ing = st.text_input(f"Ingredient", value=row["Ingredient"], key=f"ing_{idx}")
+                        new_qty = st.text_input("Quantity", value=str(row["Quantity"]), key=f"qty_{idx}")
+                        new_unit = st.text_input("Unit", value=row["Unit"], key=f"unit_{idx}")
+                        if st.button("Save", key=f"save_{idx}"):
+                            recipes_df.loc[idx, ["Ingredient", "Quantity", "Unit"]] = [new_ing, new_qty, new_unit]
+                            recipes_df.to_csv(CSV_FILE, index=False)
+                            st.success(f"Updated {new_ing} in {recipe}")
+                            st.experimental_rerun()
+        with col2:
+            if st.button(f"🗑️ Delete {recipe}"):
+                recipes_df = recipes_df[recipes_df["Recipe"] != recipe]
+                recipes_df.to_csv(CSV_FILE, index=False)
+                st.warning(f"Deleted recipe: {recipe}")
+                st.experimental_rerun()
