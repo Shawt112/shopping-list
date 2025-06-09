@@ -136,7 +136,7 @@ with col1:
                     ]
                     recipes_df.to_csv(CSV_FILE, index=False)
                     st.success(f"✅ Updated '{new_ing}' in '{recipe}'")
-                    st.experimental_rerun()
+                    st.rerun()
 
         with col2:
             if st.button(f"🚕 Delete {recipe}", key=f"delete_{safe_recipe}"):
