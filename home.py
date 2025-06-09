@@ -16,4 +16,4 @@ st.page_link("pages/3_Shopping List.py", label="🛒 Shopping List")
 
 st.markdown("---")
 
-st.info("Customize this layout to match your brand or project.")
+st.info("Made by Thomas Shaw")
