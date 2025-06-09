@@ -88,7 +88,7 @@ if st.button("🔄 Clear Plan"):
         day: {meal: "" for meal in MEALS} for day in DAYS
     }
     save_plan(st.session_state.weekly_plan)
-    st.experimental_rerun()
+    st.rerun()
 
 # Share with other pages
 selected_recipes = {
