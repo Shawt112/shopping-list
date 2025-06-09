@@ -6,11 +6,11 @@ st.set_page_config(page_title="Shopping List", page_icon="🛒", layout="centere
 st.title("🛒 Shopping List")
 
 # Check required session state data
-if "meal_plan" not in st.session_state or "recipes_df" not in st.session_state:
+if "weekly_plan" not in st.session_state or "recipes_df" not in st.session_state:
     st.error("Meal planner or recipe data not found. Please fill out the Meal Planner first.")
     st.stop()
 
-meal_plan = st.session_state["meal_plan"]
+meal_plan = st.session_state["weekly_plan"]
 recipes_df = st.session_state["recipes_df"]
 
 # Collect all selected recipes from the planner
