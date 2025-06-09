@@ -18,36 +18,42 @@ else:
     st.error("No recipes found. Please add recipes first.")
     st.stop()
 
-# Number of days
+# Number of days to plan
 num_days = st.slider("How many days do you want to plan for?", 1, 7, 3)
 selected_days = DAYS[:num_days]
 
-# Session state
+# Initialize full session state for all days
 if "weekly_plan" not in st.session_state:
     st.session_state.weekly_plan = {
-        day: {meal: "" for meal in MEALS} for day in selected_days
+        day: {meal: "" for meal in MEALS} for day in DAYS
     }
 
-# Keep state when day count changes
+# Ensure selected_days exist in plan
 for day in selected_days:
     if day not in st.session_state.weekly_plan:
         st.session_state.weekly_plan[day] = {meal: "" for meal in MEALS}
 
-# Mobile-friendly layout using expandable cards
+# Remove days outside the selected range
+for day in list(st.session_state.weekly_plan.keys()):
+    if day not in DAYS[:num_days]:
+        st.session_state.weekly_plan.pop(day)
+
+# Planner UI
 st.subheader("👜 Plan Your Meals")
 for day in selected_days:
     with st.expander(f"🌐 {day}", expanded=False):
         for meal in MEALS:
-            current = st.session_state.weekly_plan[day].get(meal, "")
-            selected = st.selectbox(
+            saved = st.session_state.weekly_plan[day].get(meal, "")
+            index = recipe_names.index(saved) + 1 if saved in recipe_names else 0
+            choice = st.selectbox(
                 f"{meal}",
                 ["-"] + recipe_names,
-                index=(recipe_names.index(current) + 1) if current in recipe_names else 0,
+                index=index,
                 key=f"{day}_{meal}"
             )
-            st.session_state.weekly_plan[day][meal] = selected
+            st.session_state.weekly_plan[day][meal] = choice
 
-# Summary in a table
+# Summary table
 st.subheader("📄 Weekly Overview")
 summary_data = []
 for day in selected_days:
@@ -59,20 +65,19 @@ for day in selected_days:
 summary_df = pd.DataFrame(summary_data)
 st.dataframe(summary_df, use_container_width=True)
 
-# Clear button
+# Clear plan
 if st.button("🔄 Clear Plan"):
     st.session_state.weekly_plan = {
-        day: {meal: "" for meal in MEALS} for day in selected_days
+        day: {meal: "" for meal in MEALS} for day in DAYS
     }
     st.experimental_rerun()
 
-# Extract all selected recipes from the weekly plan
-selected_recipes = set()
-for meals in st.session_state.weekly_plan.values():
-    for meal in meals.values():
-        if meal and meal != "-":
-            selected_recipes.add(meal)
-
-# Store in session state for access in other pages
+# Pass data to other pages
+selected_recipes = {
+    meal for meals in st.session_state.weekly_plan.values()
+    for meal in meals.values() if meal and meal != "-"
+}
 st.session_state["selected_recipes"] = list(selected_recipes)
 st.session_state["recipes_df"] = recipes_df
+st.session_state["meal_plan"] = st.session_state.weekly_plan
+
