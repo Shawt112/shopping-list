@@ -88,12 +88,14 @@ st.dataframe(summary_df, use_container_width=True)
 
 # ------------------ CLEAR PLAN ------------------
 if st.button("🔄 Clear Plan"):
-    # Reset only visible dropdowns
+    # Remove widget state (safe)
     for day in selected_days:
         for meal in MEALS:
-            st.session_state[f"{day}_{meal}"] = "-"
+            key = f"{day}_{meal}"
+            if key in st.session_state:
+                del st.session_state[key]
 
-    # Reset only visible plan
+    # Reset stored plan
     st.session_state.weekly_plan = {
         day: {meal: "" for meal in MEALS} for day in selected_days
     }
