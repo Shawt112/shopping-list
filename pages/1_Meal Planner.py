@@ -10,7 +10,9 @@ st.title("🗓️ Weekly Meal Planner")
 RECIPE_FILE = "recipes.csv"
 PLAN_FILE = "meal_plan.json"
 
-MEALS = ["Breakfast", "Lunch", "Tea", "Snacks"]
+# Removed "Snacks"
+MEALS = ["Breakfast", "Lunch", "Tea"]
+# Fixed 7 days
 DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 # ------------------ HELPERS ------------------
@@ -39,13 +41,12 @@ recipe_names = sorted(recipes_df["Recipe"].dropna().unique().tolist())
 if "weekly_plan" not in st.session_state:
     st.session_state.weekly_plan = load_plan()
 
-# 🔑 Reset counter (THIS IS THE KEY FIX)
+# 🔑 Reset counter (for dropdown keys)
 if "reset_counter" not in st.session_state:
     st.session_state.reset_counter = 0
 
-# ------------------ DAY SELECTION ------------------
-num_days = st.slider("How many days do you want to plan for?", 1, 7, 3)
-selected_days = DAYS[:num_days]
+# ------------------ FIXED 7 DAYS ------------------
+selected_days = DAYS
 
 # Keep only selected days in plan
 st.session_state.weekly_plan = {
@@ -67,7 +68,7 @@ for day in selected_days:
                 meal,
                 ["-"] + recipe_names,
                 index=index,
-                key=f"{day}_{meal}_{st.session_state.reset_counter}",  # 👈 important
+                key=f"{day}_{meal}_{st.session_state.reset_counter}",
             )
 
             # Normalize "-" to empty string
