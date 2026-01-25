@@ -3,11 +3,11 @@ import pandas as pd
 import os
 import json
 
+# -------------------- Page Config --------------------
 st.set_page_config(page_title="Shopping List", page_icon="🛒", layout="centered")
-
 st.title("🛒 Shopping List")
 
-# Restore weekly_plan if not in session
+# -------------------- Load Weekly Plan --------------------
 if "weekly_plan" not in st.session_state:
     if os.path.exists("weekly_plan.json"):
         with open("weekly_plan.json") as f:
@@ -16,7 +16,9 @@ if "weekly_plan" not in st.session_state:
         st.error("No meal plan data found. Please use the Meal Planner first.")
         st.stop()
 
-# Restore recipes_df if not in session
+meal_plan = st.session_state["weekly_plan"]
+
+# -------------------- Load Recipes --------------------
 if "recipes_df" not in st.session_state:
     if os.path.exists("recipes_cache.csv"):
         st.session_state["recipes_df"] = pd.read_csv("recipes_cache.csv")
@@ -24,31 +26,51 @@ if "recipes_df" not in st.session_state:
         st.error("No recipe data found. Please use the Recipes page first.")
         st.stop()
 
-meal_plan = st.session_state["weekly_plan"]
 recipes_df = st.session_state["recipes_df"]
 
-# Collect all selected recipes from the planner
+# -------------------- Collect Selected Recipes --------------------
 selected_recipes = set()
 for day_meals in meal_plan.values():
     selected_recipes.update([m for m in day_meals.values() if m and m != "-"])
 
-# Filter and collect ingredients
+# -------------------- Aggregate Ingredients --------------------
 ingredients = recipes_df[recipes_df["Recipe"].isin(selected_recipes)]
-
-# Aggregate duplicate ingredients
 ingredients["Quantity"] = pd.to_numeric(ingredients["Quantity"], errors="coerce").fillna(0)
 grouped = ingredients.groupby(["Ingredient", "Unit"], as_index=False)["Quantity"].sum()
 grouped = grouped.sort_values(by="Ingredient")
 
-# Display the shopping list
+# -------------------- Add Custom Items --------------------
+st.subheader("➕ Add Your Own Item")
+custom_ingredient = st.text_input("Ingredient")
+custom_quantity = st.text_input("Quantity")
+custom_unit = st.text_input("Unit")
+
+if st.button("Add Item"):
+    if "custom_items" not in st.session_state:
+        st.session_state["custom_items"] = []
+    if custom_ingredient:
+        st.session_state["custom_items"].append({
+            "Ingredient": custom_ingredient,
+            "Quantity": custom_quantity,
+            "Unit": custom_unit
+        })
+        st.success(f"Added {custom_ingredient} to your list!")
+
+# Convert custom items to DataFrame and merge
+if "custom_items" in st.session_state and st.session_state["custom_items"]:
+    custom_df = pd.DataFrame(st.session_state["custom_items"])
+    # Ensure Quantity is numeric if possible
+    custom_df["Quantity"] = pd.to_numeric(custom_df["Quantity"], errors="coerce").fillna(custom_df["Quantity"])
+    grouped = pd.concat([grouped, custom_df], ignore_index=True)
+
+# -------------------- Display Shopping List --------------------
 st.subheader("🧾 Combined Shopping List")
 if grouped.empty:
-    st.info("No ingredients to show. Make sure you've selected meals in the planner.")
+    st.info("No ingredients to show. Make sure you've selected meals in the planner or added custom items.")
 else:
-    grouped["Quantity"] = grouped["Quantity"].astype(str)  # Ensure it's printable
     grouped["Item"] = grouped.apply(lambda row: f"{row['Ingredient']} - {row['Quantity']} {row['Unit']}", axis=1)
     st.table(grouped[["Item"]].rename(columns={"Item": "Shopping Item"}))
 
-    # Optionally download
+    # Download CSV
     csv = grouped.to_csv(index=False)
     st.download_button("📥 Download Shopping List as CSV", csv, "shopping_list.csv", "text/csv")
