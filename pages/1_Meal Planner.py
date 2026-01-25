@@ -84,9 +84,18 @@ st.dataframe(summary_df, use_container_width=True)
 
 # Clear plan
 if st.button("🔄 Clear Plan"):
+    # Clear widget states
+    for day in DAYS:
+        for meal in MEALS:
+            key = f"{day}_{meal}"
+            if key in st.session_state:
+                del st.session_state[key]
+
+    # Reset plan
     st.session_state.weekly_plan = {
         day: {meal: "" for meal in MEALS} for day in DAYS
     }
+
     save_plan(st.session_state.weekly_plan)
     st.rerun()
 
