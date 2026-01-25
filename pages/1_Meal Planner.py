@@ -39,11 +39,15 @@ recipe_names = sorted(recipes_df["Recipe"].dropna().unique().tolist())
 if "weekly_plan" not in st.session_state:
     st.session_state.weekly_plan = load_plan()
 
+# 🔑 Reset counter (THIS IS THE KEY FIX)
+if "reset_counter" not in st.session_state:
+    st.session_state.reset_counter = 0
+
 # ------------------ DAY SELECTION ------------------
 num_days = st.slider("How many days do you want to plan for?", 1, 7, 3)
 selected_days = DAYS[:num_days]
 
-# Ensure plan only contains selected days
+# Keep only selected days in plan
 st.session_state.weekly_plan = {
     day: st.session_state.weekly_plan.get(day, {meal: "" for meal in MEALS})
     for day in selected_days
@@ -63,7 +67,7 @@ for day in selected_days:
                 meal,
                 ["-"] + recipe_names,
                 index=index,
-                key=f"{day}_{meal}",
+                key=f"{day}_{meal}_{st.session_state.reset_counter}",  # 👈 important
             )
 
             # Normalize "-" to empty string
@@ -79,28 +83,17 @@ if updated:
 # ------------------ SUMMARY ------------------
 st.subheader("📄 Weekly Overview")
 summary_df = pd.DataFrame(
-    [
-        {"Day": day, **st.session_state.weekly_plan[day]}
-        for day in selected_days
-    ]
+    [{"Day": day, **st.session_state.weekly_plan[day]} for day in selected_days]
 )
 st.dataframe(summary_df, use_container_width=True)
 
 # ------------------ CLEAR PLAN ------------------
 if st.button("🔄 Clear Plan"):
-    # Delete widget state so selectboxes reset
-    for day in selected_days:
-        for meal in MEALS:
-            key = f"{day}_{meal}"
-            if key in st.session_state:
-                del st.session_state[key]
-
-    # Reset stored plan
-    st.session_state.weekly_plan = {
-        day: {meal: "" for meal in MEALS} for day in selected_days
-    }
-
+    st.session_state.weekly_plan = empty_plan(selected_days)
     save_plan(st.session_state.weekly_plan)
+
+    # Force dropdown recreation
+    st.session_state.reset_counter += 1
     st.rerun()
 
 # ------------------ SHARE STATE ------------------
