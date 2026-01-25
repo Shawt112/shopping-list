@@ -88,7 +88,7 @@ st.dataframe(summary_df, use_container_width=True)
 
 # ------------------ CLEAR PLAN ------------------
 if st.button("🔄 Clear Plan"):
-    # Remove widget state (safe)
+    # Delete widget state so selectboxes reset
     for day in selected_days:
         for meal in MEALS:
             key = f"{day}_{meal}"
