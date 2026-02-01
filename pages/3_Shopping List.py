@@ -97,17 +97,12 @@ else:
         # Get previous checkbox state
         checked = st.session_state["checked_items"].get(key, False)
 
-        # Create checkbox
-        checked_now = st.checkbox(
-            "",  # empty label, we'll display the item with strikethrough
-            value=checked,
-            key=key
-        )
+        # Use st.columns to put checkbox and item on the same line
+        col1, col2 = st.columns([0.05, 0.95])
+        with col1:
+            checked_now = st.checkbox("", value=checked, key=key)
+        with col2:
+            st.markdown(f"~~{item_name}~~" if checked_now else item_name)
 
+        # Update session state
         st.session_state["checked_items"][key] = checked_now
-
-        # Display item name inline with strikethrough if checked
-        if checked_now:
-            st.markdown(f"~~{item_name}~~")
-        else:
-            st.markdown(item_name)
