@@ -81,67 +81,83 @@ st.download_button(
 )
 
 # ===========================
-# 🍽️ Display + Edit/Delete
+# 🍽️ Display + Edit/Delete Recipes
 # ===========================
 if not recipes_df.empty:
     st.subheader("📋 Manage Recipes")
-    for recipe in recipes_df["Recipe"].unique():
-        st.markdown(f"### 🍽️ {recipe}")
 
+    for recipe in recipes_df["Recipe"].unique():
+        # Skip empty or missing recipe names
+        if not recipe or str(recipe).strip() == "":
+            continue
+
+        recipe_str = str(recipe)  # Ensure it's a string
+        st.markdown(f"### 🍽️ {recipe_str}")
+
+        # Prepare recipe data
         recipe_data = recipes_df[recipes_df["Recipe"] == recipe].copy()
         recipe_data["Ingredient Detail"] = recipe_data.apply(
-            lambda row: f"{row['Ingredient']} ({row['Quantity']} {row['Unit']})" if row["Quantity"] else row["Ingredient"],
+            lambda row: f"{row['Ingredient']} ({row['Quantity']} {row['Unit']})" 
+                        if row["Quantity"] else row["Ingredient"],
             axis=1
         )
         st.table(recipe_data[["Ingredient Detail"]].reset_index(drop=True))
 
+        # Columns for edit/delete UI
         col1, col2 = st.columns([1, 1])
-        safe_recipe = re.sub(r'\W+', '_', recipe)
+        safe_recipe = re.sub(r'\W+', '_', recipe_str)  # Safe string for keys
 
+        # -------------------- Edit Ingredients --------------------
         with col1:
-            with st.expander(f"Edit ingredients for {recipe}", expanded=False):
+            with st.expander(f"Edit ingredients for {recipe_str}", expanded=False):
                 ingredients = recipe_data["Ingredient"].tolist()
-                selected_ingredient = st.selectbox(
-                    "Choose ingredient to edit",
-                    ingredients,
-                    key=f"dropdown_{safe_recipe}"
-                )
-                match = recipes_df[(recipes_df["Recipe"] == recipe) & (recipes_df["Ingredient"] == selected_ingredient)]
-                if not match.empty:
-                    idx = match.index[0]
-                    row = match.iloc[0]
-                    safe_ing = re.sub(r'\W+', '_', selected_ingredient)
+                if ingredients:
+                    selected_ingredient = st.selectbox(
+                        "Choose ingredient to edit",
+                        ingredients,
+                        key=f"dropdown_{safe_recipe}"
+                    )
 
-                    with st.form(f"edit_form_{safe_recipe}_{safe_ing}"):
-                        new_ing = st.text_input("Ingredient", value=row["Ingredient"])
-                        new_qty = st.text_input("Quantity", value=str(row["Quantity"]))
-                        new_unit = st.text_input("Unit", value=row["Unit"])
-                        col_save, col_delete = st.columns([1, 1])
+                    match = recipes_df[
+                        (recipes_df["Recipe"] == recipe) & 
+                        (recipes_df["Ingredient"] == selected_ingredient)
+                    ]
+                    if not match.empty:
+                        idx = match.index[0]
+                        row = match.iloc[0]
+                        safe_ing = re.sub(r'\W+', '_', str(selected_ingredient))
 
-                        with col_save:
-                            save = st.form_submit_button("📅 Save Changes")
-                        with col_delete:
-                            delete = st.form_submit_button("🚑 Delete Ingredient")
+                        with st.form(f"edit_form_{safe_recipe}_{safe_ing}"):
+                            new_ing = st.text_input("Ingredient", value=str(row["Ingredient"]))
+                            new_qty = st.text_input("Quantity", value=str(row["Quantity"]))
+                            new_unit = st.text_input("Unit", value=str(row["Unit"]))
+                            col_save, col_delete = st.columns([1, 1])
 
-                        if save:
-                            recipes_df.loc[idx, ["Ingredient", "Quantity", "Unit"]] = [
-                                new_ing.strip(),
-                                new_qty.strip(),
-                                new_unit.strip()
-                            ]
-                            recipes_df.to_csv(CSV_FILE, index=False)
-                            st.success(f"✅ Updated '{new_ing}' in '{recipe}'")
-                            st.rerun()
+                            with col_save:
+                                save = st.form_submit_button("📅 Save Changes")
+                            with col_delete:
+                                delete = st.form_submit_button("🚑 Delete Ingredient")
 
-                        if delete:
-                            recipes_df = recipes_df.drop(index=idx)
-                            recipes_df.to_csv(CSV_FILE, index=False)
-                            st.warning(f"🚑 Deleted ingredient '{selected_ingredient}' from '{recipe}'")
-                            st.rerun()
+                            if save:
+                                recipes_df.loc[idx, ["Ingredient", "Quantity", "Unit"]] = [
+                                    new_ing.strip(),
+                                    new_qty.strip(),
+                                    new_unit.strip()
+                                ]
+                                recipes_df.to_csv(CSV_FILE, index=False)
+                                st.success(f"✅ Updated '{new_ing}' in '{recipe_str}'")
+                                st.experimental_rerun()
 
+                            if delete:
+                                recipes_df = recipes_df.drop(index=idx)
+                                recipes_df.to_csv(CSV_FILE, index=False)
+                                st.warning(f"🚑 Deleted ingredient '{selected_ingredient}' from '{recipe_str}'")
+                                st.experimental_rerun()
+
+        # -------------------- Delete Entire Recipe --------------------
         with col2:
-            if st.button(f"Delete {recipe}", key=f"delete_{safe_recipe}"):
+            if st.button(f"Delete {recipe_str}", key=f"delete_{safe_recipe}"):
                 recipes_df = recipes_df[recipes_df["Recipe"] != recipe]
                 recipes_df.to_csv(CSV_FILE, index=False)
-                st.warning(f"Deleted recipe: {recipe}")
-                st.rerun()
+                st.warning(f"Deleted recipe: {recipe_str}")
+                st.experimental_rerun()
