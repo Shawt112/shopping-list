@@ -86,22 +86,28 @@ st.subheader("🧾 Combined Shopping List")
 if grouped.empty:
     st.info("No ingredients to show.")
 else:
-    # Create a unique key for each item for session state
+    # Initialize checkbox state
     if "checked_items" not in st.session_state:
         st.session_state["checked_items"] = {}
 
     for idx, row in grouped.iterrows():
         item_name = f"{row['Ingredient']} - {row['Quantity']} {row['Unit']}"
-        key = f"item_{idx}"  # unique key per item
+        key = f"item_{idx}"  # unique key for each item
 
-        # Checkbox: if checked, strike through the text
-        checked = st.checkbox(
-            item_name, 
-            value=st.session_state["checked_items"].get(key, False), 
+        # Get previous checkbox state
+        checked = st.session_state["checked_items"].get(key, False)
+
+        # Create checkbox
+        checked_now = st.checkbox(
+            "",  # empty label, we'll display the item with strikethrough
+            value=checked,
             key=key
         )
-        st.session_state["checked_items"][key] = checked
 
-        # Display item with strikethrough if checked
-        if checked:
+        st.session_state["checked_items"][key] = checked_now
+
+        # Display item name inline with strikethrough if checked
+        if checked_now:
             st.markdown(f"~~{item_name}~~")
+        else:
+            st.markdown(item_name)
