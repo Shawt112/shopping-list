@@ -80,25 +80,28 @@ if st.session_state["custom_items"]:
 
     grouped = pd.concat([grouped, custom_df], ignore_index=True)
 
-# -------------------- Display Shopping List --------------------
+# -------------------- Display Shopping List with Checkboxes --------------------
 st.subheader("🧾 Combined Shopping List")
 
 if grouped.empty:
     st.info("No ingredients to show.")
 else:
-    grouped["Item"] = grouped.apply(
-        lambda r: f"{r['Ingredient']} - {r['Quantity']} {r['Unit']}",
-        axis=1
-    )
+    # Create a unique key for each item for session state
+    if "checked_items" not in st.session_state:
+        st.session_state["checked_items"] = {}
 
-    st.table(
-        grouped[["Item"]].rename(columns={"Item": "Shopping Item"})
-    )
+    for idx, row in grouped.iterrows():
+        item_name = f"{row['Ingredient']} - {row['Quantity']} {row['Unit']}"
+        key = f"item_{idx}"  # unique key per item
 
-    csv = grouped.to_csv(index=False)
-    st.download_button(
-        "📥 Download Shopping List as CSV",
-        csv,
-        "shopping_list.csv",
-        "text/csv"
-    )
+        # Checkbox: if checked, strike through the text
+        checked = st.checkbox(
+            item_name, 
+            value=st.session_state["checked_items"].get(key, False), 
+            key=key
+        )
+        st.session_state["checked_items"][key] = checked
+
+        # Display item with strikethrough if checked
+        if checked:
+            st.markdown(f"~~{item_name}~~")
