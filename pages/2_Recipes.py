@@ -20,14 +20,24 @@ else:
 # 📂 Upload CSV
 # ===========================
 st.subheader("📂 Upload Recipes from CSV")
-uploaded_file = st.file_uploader("Upload a CSV file with 'Recipe', 'Ingredient', 'Quantity', and 'Unit' columns", type=["csv"])
+uploaded_file = st.file_uploader(
+    "Upload a CSV file with 'Recipe', 'Ingredient', 'Quantity', and 'Unit' columns", 
+    type=["csv"]
+)
 if uploaded_file:
-    new_data = pd.read_csv(uploaded_file)
+    try:
+        # Try reading with utf-8 first
+        new_data = pd.read_csv(uploaded_file, encoding='utf-8')
+    except UnicodeDecodeError:
+        # Fallback to latin1 if utf-8 fails
+        uploaded_file.seek(0)  # reset file pointer
+        new_data = pd.read_csv(uploaded_file, encoding='latin1')
+
     if all(col in new_data.columns for col in ["Recipe", "Ingredient", "Quantity", "Unit"]):
         recipes_df = pd.concat([recipes_df, new_data], ignore_index=True).drop_duplicates()
         recipes_df.to_csv(CSV_FILE, index=False)
         st.success("Recipes uploaded and saved!")
-        st.rerun()
+        st.experimental_rerun()
     else:
         st.error("CSV must include 'Recipe', 'Ingredient', 'Quantity', and 'Unit' columns")
 
